@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TechWire – Live tech news</title>
+<meta name="description" content="Live tech news from Hacker News, DEV, GitHub and Spaceflight News.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f0; --ink:#14201c; --muted:#5b6b65; --card:#ffffff; --line:#d3dcd8; --accent:#0b6e5b; --accent-ink:#ffffff; --chip:#dfe9e5;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0f1715;--ink:#e6efeb;--muted:#93a69f;--card:#17221f;--line:#273632;--accent:#4fd1b0;--accent-ink:#06211a;--chip:#1f2e2a}
+}
+:root[data-theme="dark"]{--bg:#0f1715;--ink:#e6efeb;--muted:#93a69f;--card:#17221f;--line:#273632;--accent:#4fd1b0;--accent-ink:#06211a;--chip:#1f2e2a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Source Serif 4",Georgia,serif;line-height:1.55}
+a{color:inherit;text-decoration:none}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{max-width:1100px;margin:auto;padding:14px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.logo{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.03em}
+.logo span{color:var(--accent)}
+.search{flex:1;min-width:180px}
+.search input{width:100%;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+button{font:inherit;cursor:pointer}
+.icon-btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 12px}
+.tabs{max-width:1100px;margin:auto;padding:0 20px 12px;display:flex;gap:8px;overflow-x:auto}
+.tab{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:700;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:7px 14px;border-radius:999px;white-space:nowrap}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+main{max-width:1100px;margin:auto;padding:24px 20px 60px}
+.status{color:var(--muted);font-size:.95rem;margin-bottom:16px;font-family:system-ui,sans-serif}
+.lead{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;margin-bottom:24px}
+.lead h2{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:clamp(1.7rem,4vw,2.6rem);line-height:1.1;letter-spacing:-.02em;margin:8px 0 12px}
+.lead:hover h2{text-decoration:underline}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.card{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;overflow:hidden}
+.card:hover{border-color:var(--accent)}
+.card img{width:100%;height:160px;object-fit:cover;border-radius:8px;background:var(--chip)}
+.card h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:1.08rem;line-height:1.25;margin:0}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.meta{font-family:system-ui,sans-serif;font-size:.8rem;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
+.src{background:var(--chip);color:var(--ink);border-radius:6px;padding:1px 8px;font-weight:600}
+.more{display:block;margin:28px auto 0;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:12px 24px;font-weight:700}
+.skeleton{height:120px;border-radius:12px;background:linear-gradient(90deg,var(--chip),var(--card),var(--chip));background-size:200% 100%;animation:sh 1.4s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+footer{border-top:1px solid var(--line);padding:24px 20px;text-align:center;color:var(--muted);font-size:.85rem;font-family:system-ui,sans-serif}
+@media (prefers-reduced-motion:reduce){.skeleton{animation:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="logo" href="./">Tech<span>Wire</span></a>
+    <div class="search"><input id="q" type="search" placeholder="Filter headlines…" aria-label="Filter headlines"></div>
+    <button class="icon-btn" id="refresh" aria-label="Refresh news">Refresh</button>
+    <button class="icon-btn" id="theme" aria-label="Toggle dark mode">Theme</button>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="News sources"></nav>
+</header>
+
+<main>
+  <div class="status" id="status" role="status">Loading…</div>
+  <div id="lead"></div>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" hidden>Show more</button>
+</main>
+
+<footer>Data from Hacker News, DEV, GitHub and Spaceflight News public APIs. Links open the original publisher.</footer>
+
+<script>
+/* ---------- Config: all APIs below are free and need no API key ---------- */
+/* Free API keys anyone can get. Leave a key blank ("") to hide that source.
+   guardian: "test" is the Guardian's public shared key (rate-limited); get your own free at open-platform.theguardian.com/access
+   gnews:    free key at gnews.io
+   newsdata: free key at newsdata.io                                                         */
+const KEYS = { guardian: "test", gnews: "", newsdata: "" };
+
+const SOURCES = {
+  all:    { label: "All",             fetch: fetchAll },
+  hn:     { label: "Hacker News",     fetch: fetchHN },
+  dev:    { label: "DEV Community",   fetch: fetchDev },
+  github: { label: "GitHub Trending", fetch: fetchGitHub },
+  space:  { label: "Space & Hardware",fetch: fetchSpace },
+  guardian: { label: "The Guardian",  fetch: fetchGuardian, needs: "guardian" },
+  gnews:    { label: "GNews",         fetch: fetchGNews,    needs: "gnews" },
+  newsdata: { label: "NewsData",      fetch: fetchNewsData, needs: "newsdata" }
+};
+const PAGE = 18;
+let state = { src: "all", items: [], shown: PAGE, query: "" };
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
+function ago(ts){
+  const s = Math.max(1, (Date.now() - ts) / 1000);
+  const t = [[86400,"d"],[3600,"h"],[60,"m"]];
+  for (const [n,l] of t) if (s >= n) return Math.floor(s / n) + l + " ago";
+  return "just now";
+}
+async function getJSON(url){
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(url + " → " + r.status);
+  return r.json();
+}
+const safe = p => p.catch(e => { console.warn(e); return []; });
+
+/* ---------- Source fetchers (each returns normalized items) ---------- */
+// 1) Hacker News – https://github.com/HackerNews/API
+async function fetchHN(){
+  const ids = (await getJSON("https://hacker-news.firebaseio.com/v0/topstories.json")).slice(0, 40);
+  const stories = await Promise.all(ids.map(id => getJSON(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).catch(() => null)));
+  return stories.filter(s => s && s.title).map(s => ({
+    title: s.title,
+    url: s.url || `https://news.ycombinator.com/item?id=${s.id}`,
+    source: "Hacker News",
+    time: s.time * 1000,
+    note: `${s.score} points · ${s.descendants || 0} comments`,
+    summary: ""
+  }));
+}
+// 2) DEV.to – https://developers.forem.com/api
+async function fetchDev(){
+  const data = await getJSON("https://dev.to/api/articles?top=1&per_page=30");
+  return data.map(a => ({
+    title: a.title, url: a.url, source: "DEV",
+    time: new Date(a.published_at).getTime(),
+    note: `${a.public_reactions_count} reactions`,
+    summary: a.description, image: a.cover_image
+  }));
+}
+// 3) GitHub Search API (repos created in last 7 days, sorted by stars) – 60 req/hour unauthenticated
+async function fetchGitHub(){
+  const d = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  const data = await getJSON(`https://api.github.com/search/repositories?q=created:>${d}&sort=stars&order=desc&per_page=25`);
+  return data.items.map(r => ({
+    title: `${r.full_name}${r.language ? " (" + r.language + ")" : ""}`,
+    url: r.html_url, source: "GitHub",
+    time: new Date(r.created_at).getTime(),
+    note: `★ ${r.stargazers_count.toLocaleString()}`,
+    summary: r.description || ""
+  }));
+}
+// 4) Spaceflight News API – https://api.spaceflightnewsapi.net/v4/docs/
+async function fetchSpace(){
+  const data = await getJSON("https://api.spaceflightnewsapi.net/v4/articles/?limit=25");
+  return data.results.map(a => ({
+    title: a.title, url: a.url, source: a.news_site,
+    time: new Date(a.published_at).getTime(),
+    note: "", summary: a.summary, image: a.image_url
+  }));
+}
+// 5) The Guardian Open Platform (technology section)
+async function fetchGuardian(){
+  const d = await getJSON(`https://content.guardianapis.com/search?section=technology&order-by=newest&page-size=30&show-fields=trailText,thumbnail&api-key=${encodeURIComponent(KEYS.guardian)}`);
+  return d.response.results.map(a => ({
+    title: a.webTitle, url: a.webUrl, source: "The Guardian",
+    time: new Date(a.webPublicationDate).getTime(), note: "",
+    summary: (a.fields?.trailText || "").replace(/<[^>]*>/g, ""), image: a.fields?.thumbnail
+  }));
+}
+// 6) GNews – tech top headlines
+async function fetchGNews(){
+  const d = await getJSON(`https://gnews.io/api/v4/top-headlines?category=technology&lang=en&max=25&apikey=${encodeURIComponent(KEYS.gnews)}`);
+  return d.articles.map(a => ({
+    title: a.title, url: a.url, source: a.source?.name || "GNews",
+    time: new Date(a.publishedAt).getTime(), note: "", summary: a.description || "", image: a.image
+  }));
+}
+// 7) NewsData.io – tech latest
+async function fetchNewsData(){
+  const d = await getJSON(`https://newsdata.io/api/1/latest?category=technology&language=en&apikey=${encodeURIComponent(KEYS.newsdata)}`);
+  return d.results.map(a => ({
+    title: a.title, url: a.link, source: a.source_name || "NewsData",
+    time: new Date(String(a.pubDate).replace(" ", "T") + "Z").getTime(), note: "",
+    summary: a.description || "", image: a.image_url
+  }));
+}
+async function fetchAll(){
+  const fs = [fetchHN, fetchDev, fetchGitHub, fetchSpace];
+  for (const k of ["guardian", "gnews", "newsdata"]) if (KEYS[k]) fs.push({ guardian: fetchGuardian, gnews: fetchGNews, newsdata: fetchNewsData }[k]);
+  const lists = await Promise.all(fs.map(f => safe(f())));
+  return lists.flat().sort((a, b) => b.time - a.time);
+}
+
+/* ---------- Render ---------- */
+function visible(){
+  const q = state.query.toLowerCase();
+  return q ? state.items.filter(i => (i.title + " " + i.summary).toLowerCase().includes(q)) : state.items;
+}
+function render(){
+  const list = visible();
+  const withImg = list.find(i => i.image) || list[0];
+  const rest = list.filter(i => i !== withImg).slice(0, state.shown);
+  $("lead").innerHTML = withImg ? `
+    <a class="lead" href="${esc(withImg.url)}" target="_blank" rel="noopener noreferrer">
+      <div class="meta"><span class="src">${esc(withImg.source)}</span><span>${ago(withImg.time)}</span><span>${esc(withImg.note)}</span></div>
+      <h2>${esc(withImg.title)}</h2>
+      <p>${esc(withImg.summary)}</p>
+    </a>` : "";
+  $("grid").innerHTML = rest.map(i => `
+    <a class="card" href="${esc(i.url)}" target="_blank" rel="noopener noreferrer">
+      ${i.image ? `<img src="${esc(i.image)}" alt="" loading="lazy" onerror="this.remove()">` : ""}
+      <h3>${esc(i.title)}</h3>
+      ${i.summary ? `<p>${esc(i.summary.slice(0, 140))}${i.summary.length > 140 ? "…" : ""}</p>` : ""}
+      <div class="meta"><span class="src">${esc(i.source)}</span><span>${ago(i.time)}</span>${i.note ? `<span>${esc(i.note)}</span>` : ""}<span>${esc(host(i.url))}</span></div>
+    </a>`).join("");
+  $("more").hidden = list.length - 1 <= state.shown;
+  $("status").textContent = list.length
+    ? `${list.length} stories · updated ${new Date().toLocaleTimeString()}`
+    : "No stories match. Clear the filter or try another source.";
+}
+async function load(){
+  $("status").textContent = "Loading…";
+  $("lead").innerHTML = "";
+  $("grid").innerHTML = Array.from({ length: 6 }, () => '<div class="skeleton"></div>').join("");
+  try {
+    state.items = await SOURCES[state.src].fetch();
+    state.shown = PAGE;
+    if (!state.items.length) throw new Error("empty");
+    render();
+    try { sessionStorage.setItem("tw:" + state.src, JSON.stringify(state.items)); } catch {}
+  } catch (e) {
+    let cached = null;
+    try { cached = JSON.parse(sessionStorage.getItem("tw:" + state.src)); } catch {}
+    if (cached) { state.items = cached; render(); $("status").textContent += " (showing saved copy; source unreachable)"; }
+    else { $("grid").innerHTML = ""; $("status").textContent = "Couldn't load this source. Check your connection and press Refresh."; }
+  }
+}
+
+/* ---------- UI wiring ---------- */
+$("tabs").innerHTML = Object.entries(SOURCES).filter(([k, v]) => !v.needs || KEYS[v.needs]).map(([k, v]) =>
+  `<button class="tab" data-k="${k}" aria-pressed="${k === state.src}">${v.label}</button>`).join("");
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  state.src = b.dataset.k;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-pressed", t === b));
+  load();
+});
+$("q").addEventListener("input", e => { state.query = e.target.value; state.shown = PAGE; render(); });
+$("more").addEventListener("click", () => { state.shown += PAGE; render(); });
+$("refresh").addEventListener("click", load);
+$("theme").addEventListener("click", () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("tw:theme", r.dataset.theme); } catch {}
+});
+try { const t = localStorage.getItem("tw:theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+setInterval(load, 10 * 60 * 1000); // auto-refresh every 10 min
+load();
+</script>
+</body>
+</html>
